@@ -49,13 +49,14 @@ public class OrderPrompt implements CommandLineRunner {
             System.out.println("시스템 종료");
             System.exit(0);
         } else if ("o".equalsIgnoreCase(input)) {
-            printProductInfo();     //상품 리스트 뿌리고 상품번호,재고수량으로 넘김
+            printProductInfo();             //상품 리스트 뿌리고 상품번호,재고수량으로 넘김
             handleOrderInput(lineReader);   //공백제거하고 empty로 들어오면 order list계산
             //-------- 쓰레드 처리.
             //여기서 재고 체크하고 재고가 없으면 실패 메시지로 떨궈버림 Exception 처리
             //재고 있으면 재고 차감 처리
             //--------
-            printOrderSummary();    //재고 정상이라면 주문금액 처리
+            printOrderSummary();            //재고 정상이라면 주문금액 처리
+            orderService.clearOrders();     //오더 클리어
         } else {
             System.out.println("잘못된 입력입니다.");
         }
@@ -101,8 +102,6 @@ public class OrderPrompt implements CommandLineRunner {
             // 주문 추가
             Order order = new Order(productEntity, quantity);
             orderService.addOrder(order);
-
-            //System.out.printf("%s x %d = %.2f%n", productEntity.getName(), quantity, productEntity.getPrice() * quantity);
         }
     }
 
@@ -122,6 +121,7 @@ public class OrderPrompt implements CommandLineRunner {
         }
 
         System.out.printf("총 주문 금액: %.2f%n", totalOrderPrice);
+
     }
 
 

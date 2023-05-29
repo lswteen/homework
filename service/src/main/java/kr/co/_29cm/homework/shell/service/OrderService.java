@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -20,10 +19,10 @@ public class OrderService {
     }
 
     public void addOrder(Order order) {
-        long productId = order.getProduct().getProductId();
+        var productId = order.getProduct().getProductId();
 
         if (orders.containsKey(productId)) {
-            Order existingOrder = orders.get(productId);
+            var existingOrder = orders.get(productId);
             existingOrder.addQuantity(order.getQuantity());
         } else {
             log.info("productId :{}, order : {} ", productId, order.toString());
