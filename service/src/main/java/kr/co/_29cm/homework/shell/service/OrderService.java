@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
@@ -15,19 +16,18 @@ public class OrderService {
     private Map<Long, Order> orders;
 
     public OrderService() {
-        this.orders = new HashMap<>();
+        this.orders = new ConcurrentHashMap<>();
     }
 
     public void addOrder(Order order) {
         var productId = order.getProduct().getProductId();
-
-        if (orders.containsKey(productId)) {
-            var existingOrder = orders.get(productId);
-            existingOrder.addQuantity(order.getQuantity());
-        } else {
-            log.info("productId :{}, order : {} ", productId, order.toString());
-            orders.put(productId, order);
-        }
+            if (orders.containsKey(productId)) {
+                var existingOrder = orders.get(productId);
+                existingOrder.addQuantity(order.getQuantity());
+            } else {
+                log.info("productId :{}, order : {} ", productId, order.toString());
+                orders.put(productId, order);
+            }
     }
 
     public List<Order> getOrders() {
