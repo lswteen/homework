@@ -13,9 +13,8 @@ import org.hibernate.annotations.Comment;
 public class ProductEntity {
     @Id
     @Comment("옵션 ID")
-    @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name="product_id")
+    private Long productId;
 
     @Column(name="name")
     private String name;
