@@ -26,4 +26,9 @@ public class ProductService {
     public ProductEntity save(ProductEntity productEntity){
         return productRepository.save(productEntity);
     }
+
+    public ProductEntity findProductById(Long productId) {
+        return productRepository.findById(productId)
+                .orElseThrow(()-> new IllegalArgumentException("해당 ID상품을 찾을수 없습니다." + productId));
+    }
 }
