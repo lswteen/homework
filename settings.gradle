@@ -1,1 +1,5 @@
 rootProject.name = 'homework'
+include 'service'
+include 'domain'
+include 'core'
+
