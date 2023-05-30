@@ -8,26 +8,31 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
-public class OrderService {
+public class OrderAppService {
     private Map<Long, Order> orders;
 
-    public OrderService() {
-        this.orders = new ConcurrentHashMap<>();
+    public OrderAppService() {
+        this.orders = new HashMap<>();
+    }
+
+    public int getTotalQuantityForProduct(Long productId) {
+        return orders.values().stream()
+                .filter(order -> order.getProduct().getProductId().equals(productId))
+                .mapToInt(Order::getQuantity)
+                .sum();
     }
 
     public void addOrder(Order order) {
         var productId = order.getProduct().getProductId();
-            if (orders.containsKey(productId)) {
-                var existingOrder = orders.get(productId);
-                existingOrder.addQuantity(order.getQuantity());
-            } else {
-                log.info("productId :{}, order : {} ", productId, order.toString());
-                orders.put(productId, order);
-            }
+        if (orders.containsKey(productId)) {
+            var existingOrder = orders.get(productId);
+            existingOrder.addQuantity(order.getQuantity());
+        } else {
+            orders.put(productId, order);
+        }
     }
 
     public List<Order> getOrders() {

@@ -4,11 +4,11 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Comment;
 
-@ToString
 @Getter
+@ToString
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name="product")
 public class ProductEntity {
     @Id
@@ -24,4 +24,6 @@ public class ProductEntity {
 
     @Column(name="stock")
     private Integer stock;
+
+
 }
