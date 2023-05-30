@@ -17,7 +17,7 @@ public interface ProductQueryMapper {
     @Mapping(source = "productId", target = "productId")
     @Mapping(source = "name", target = "name")
     @Mapping(source = "price", target = "price")
-    @Mapping(source = "stock", target = "stock")
+    @Mapping(source = "quantity", target = "quantity")
     Product toProduct(ProductEntity productEntity);
 
 }

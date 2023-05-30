@@ -56,10 +56,8 @@ public class OrderPrompt implements CommandLineRunner {
         } else if ("o".equalsIgnoreCase(input)) {
             printProductInfo();             //상품 리스트 뿌리고 상품번호,재고수량으로 넘김
             handleOrderInput(lineReader);   //공백제거하고 empty로 들어오면 order list계산 하고 결제한다는 가정
-            //-------- 쓰레드 처리.
             //여기서 재고 체크하고 재고가 없으면 실패 메시지로 떨궈버림 Exception 처리
             //재고 있으면 재고 차감 처리
-            //--------
             printOrderSummary();            //재고 정상이라면 주문금액 처리
             orderAppService.clearOrders();     //주문 완료 시 Map 자료구조 초기화 (해당 쓰레드만)
         } else {
@@ -74,7 +72,7 @@ public class OrderPrompt implements CommandLineRunner {
         productList.stream().forEach(
             product -> System.out.printf("%-10s %-60s %-12s %-10s%n",
                     product.getProductId(), product.getName(),
-                    product.getPrice(), product.getStock()
+                    product.getPrice(), product.getQuantity()
             )
         );
     }
@@ -87,6 +85,7 @@ public class OrderPrompt implements CommandLineRunner {
             // 공백 입력시 주문 완료 결제로 판단
             if (productId.isEmpty() || quantityStr.isEmpty()) {
                 // 주문에 대한 최종 결제완료 판단으로 재고를 차감시킴.
+
                 break;
             }
 
@@ -99,7 +98,7 @@ public class OrderPrompt implements CommandLineRunner {
 
                 //재고 수량
                 int totalQuantity = quantity + orderAppService.getTotalQuantityForProduct(Long.valueOf(productId));
-                if (product.getStock() < totalQuantity) {
+                if (product.getQuantity() < totalQuantity) {
                     throw new SoldOutException();
                 }
 

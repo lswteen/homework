@@ -26,7 +26,7 @@ class ProductServiceTest {
         productRepository.save(ProductEntity.builder()
                 .name("test")
                 .price(1000D)
-                .stock(3)
+                .quantity(3)
                 .build());
 
     }

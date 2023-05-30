@@ -12,5 +12,5 @@ public class Product {
     private Long productId;
     private String name;
     private Double price;
-    private Integer stock;
+    private Integer quantity;
 }
