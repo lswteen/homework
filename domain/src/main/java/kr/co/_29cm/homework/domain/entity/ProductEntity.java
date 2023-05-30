@@ -25,5 +25,11 @@ public class ProductEntity {
     @Column(name="quantity")
     private Integer quantity;
 
-
+    public void decreaseQuantity(Integer quantity) {
+        int restQuantity = this.quantity - quantity;
+        if (restQuantity < 0) {
+            throw new IllegalStateException("재고가 충분하지 않습니다.");
+        }
+        this.quantity = restQuantity;
+    }
 }
