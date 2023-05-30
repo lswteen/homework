@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-
 @Component
 public class OrderPrompt implements CommandLineRunner {
     private static final double DELIVERY_FEE = 2500; // 배송비 설정

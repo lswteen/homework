@@ -24,7 +24,4 @@ public class ProductAppService {
         return queryMapper.toProduct(productService.findByProductId(productId));
     }
 
-//    public void decreaseProductQuantity(Long productId, int quantity) {
-//        productService.decreaseProductQuantity(productId, quantity);
-//    }
 }

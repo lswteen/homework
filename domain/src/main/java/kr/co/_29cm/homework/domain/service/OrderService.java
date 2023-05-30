@@ -1,7 +1,6 @@
 package kr.co._29cm.homework.domain.service;
 
 import kr.co._29cm.homework.domain.entity.OrderEntity;
-import kr.co._29cm.homework.domain.entity.ProductEntity;
 import kr.co._29cm.homework.domain.repository.OrderRepository;
 import kr.co._29cm.homework.domain.repository.ProductRepository;
 import kr.co_29cm.homework.exception.SoldOutException;
