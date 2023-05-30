@@ -1,7 +1,6 @@
 package kr.co._29cm.homework.shell;
 
 import kr.co._29cm.homework.shell.request.Order;
-import kr.co._29cm.homework.shell.request.Product;
 import kr.co._29cm.homework.shell.service.OrderAppService;
 import kr.co._29cm.homework.shell.service.ProductAppService;
 import kr.co_29cm.homework.exception.ProductNotFoundException;
@@ -14,15 +13,16 @@ import org.jline.terminal.TerminalBuilder;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
+
 @Component
 public class OrderPrompt implements CommandLineRunner {
-    private static final String ORDER_PROMPT = "상품번호 : ";
-    private static final String QUANTITY_PROMPT = "수량 : ";
     private static final double DELIVERY_FEE = 2500; // 배송비 설정
 
     private final ProductAppService productAppService;
     private final OrderAppService orderAppService;
-
 
     public OrderPrompt(ProductAppService productAppService, OrderAppService orderAppService) {
         this.productAppService = productAppService;
@@ -36,12 +36,11 @@ public class OrderPrompt implements CommandLineRunner {
                 .builder()
                 .terminal(terminal)
                 .build();
-        var prompt = "입력(o[order]: 주문, q[quit]: 종료) : ";
 
         while (true) {
             String line = null;
             try {
-                line = lineReader.readLine(prompt);
+                line = lineReader.readLine(OrderPromptStrings.PROMPT_MESSAGE);
                 manageOrderProcess(line, lineReader);
             } catch (UserInterruptException | EndOfFileException e) {
                 return;
@@ -51,64 +50,72 @@ public class OrderPrompt implements CommandLineRunner {
 
     private void manageOrderProcess(String input, LineReader lineReader) {
         if ("q".equalsIgnoreCase(input)) {
-            System.out.printf("시스템 종료");
+            System.out.printf(OrderPromptStrings.EXIT_MESSAGE);
             System.exit(0);
         } else if ("o".equalsIgnoreCase(input)) {
-            printProductInfo();             //상품 리스트 뿌리고 상품번호,재고수량으로 넘김
-            handleOrderInput(lineReader);   //공백제거하고 empty로 들어오면 order list계산 하고 결제한다는 가정
-            printOrderSummary();            //재고 정상이라면 주문금액 처리
-            orderAppService.clearOrders();     //주문 완료 시 Map 자료구조 초기화 (해당 쓰레드만)
+            printProductInfo();
+            handleOrderInput(lineReader);
+            printOrderSummary();
+            orderAppService.clearOrders();
+        } else if("m".equalsIgnoreCase(input)){
+            printOrderList();
         } else {
-            System.out.printf("입력값 오류");
+            System.out.printf(OrderPromptStrings.INPUT_ERROR_MESSAGE);
         }
     }
 
-    private void printProductInfo() {
-        var productList = productAppService.findByProducts();
-        System.out.printf("%-10s %-60s %-12s %-10s%n", "상품번호", "상품명", "판매가격", "재고수량");
-
-        productList.stream().forEach(
-            product -> System.out.printf("%-10s %-60s %-12s %-10s%n",
-                    product.getProductId(), product.getName(),
-                    removeDecimalZero(product.getPrice()), product.getQuantity()
-            )
-        );
-    }
-
     private String removeDecimalZero(Double value) {
-        String formattedValue = String.format("%.1f", value);
+        var formattedValue = String.format("%.1f", value);
         return formattedValue.endsWith(".0") ? formattedValue.replace(".0", "") : formattedValue;
     }
 
+    /**
+     * 상품 정보 조회
+     */
+    private void printProductInfo() {
+        var productList = productAppService.findByProducts();
+        System.out.printf("%-10s %-60s %-12s %-10s%n",
+                OrderPromptStrings.PRODUCT_NUMBER_LABEL, OrderPromptStrings.PRODUCT_NAME_LABEL,
+                OrderPromptStrings.SELLING_PRICE_LABEL, OrderPromptStrings.STOCK_QUANTITY_LABEL);
+
+        productList.stream().forEach(
+                product -> System.out.printf("%-10s %-60s %-12s %-10s%n",
+                    product.getProductId(), product.getName(),
+                    removeDecimalZero(product.getPrice()), product.getQuantity()
+                )
+        );
+    }
+
+    /**
+     * 주문 처리
+     * @param lineReader
+     */
     private void handleOrderInput(LineReader lineReader) {
         while (true) {
-            var productId = lineReader.readLine(ORDER_PROMPT).trim();
-            var quantityStr = lineReader.readLine(QUANTITY_PROMPT).trim();
+            var productId = lineReader.readLine(OrderPromptStrings.ORDER_PROMPT).trim();
+            var quantityStr = lineReader.readLine(OrderPromptStrings.QUANTITY_PROMPT).trim();
+            var userId = String.valueOf(Thread.currentThread().getId());
 
             // 공백 입력시 주문 완료 결제로 판단
             if (productId.isEmpty() || quantityStr.isEmpty()) {
-                // 주문에 대한 최종 결제완료 판단으로 재고를 차감시킴.
-                orderAppService.getOrders().forEach(order -> {
-                    productAppService.decreaseProductQuantity(order.getProduct().getProductId(), order.getQuantity());
-                });
+                // 재고차감과 주문 테이블 등록을 동시에 한 트랜잭션에서 처리
+                Map<Long, Integer> productQuantities = orderAppService.getOrders().stream()
+                        .collect(Collectors.toMap(
+                                order -> order.getProduct().getProductId(),
+                                Order::getQuantity
+                        ));
+                orderAppService.createOrdersAndDecreaseProductQuantity(productQuantities,userId);
                 break;
             }
 
-            var quantity = Integer.parseInt(quantityStr);
-
-            Product product = null;
             try {
-                // 상품 조회
-                product = productAppService.findByProductId(Long.valueOf(productId));
-
-                //재고 수량
-                int totalQuantity = quantity + orderAppService.getTotalQuantityForProduct(Long.valueOf(productId));
-                if (product.getQuantity() < totalQuantity) {
+                var quantity = Integer.parseInt(quantityStr); // 수량
+                var product = productAppService.findByProductId(Long.valueOf(productId)); //상품검색
+                var totalQuantity = quantity + orderAppService.getTotalQuantityForProduct(Long.valueOf(productId)); //총수량 (수량 + 현재 주문수량)
+                if (product.getQuantity() < totalQuantity) { //상품에 재고수량 < 현재 총수량
                     throw new SoldOutException();
                 }
-
-                //주문 추가
-                Order order = new Order(product, quantity);
+                var order = new Order(product, quantity,userId);   //주문
                 orderAppService.addOrder(order);
             } catch (ProductNotFoundException | SoldOutException e) {
                 System.out.println(e.getMessage());
@@ -117,26 +124,40 @@ public class OrderPrompt implements CommandLineRunner {
         }
     }
 
+    /**
+     * 등록된 주문 목록 계산
+     */
     private void printOrderSummary() {
-        // 주문 내역 출력
-        System.out.println("주문 내역:");
-        System.out.println("------------------------------------------------------");
+        System.out.println(OrderPromptStrings.ORDER_HISTORY_HEADER);
+        System.out.println(OrderPromptStrings.ORDER_HISTORY_DELIMITER);
         orderAppService.getOrders().stream()
                 .forEach(order -> System.out.printf("%s - %d개%n", order.getProduct().getName(), order.getQuantity()));
-        System.out.println("------------------------------------------------------");
-        //주문 금액 계산
+        System.out.println(OrderPromptStrings.ORDER_HISTORY_DELIMITER);
         var totalOrderPrice = orderAppService.getOrders().stream()
                 .mapToDouble(order -> order.getProduct().getPrice() * order.getQuantity())
                 .sum();
-        System.out.printf("주문 금액: %,.0f원%n", totalOrderPrice);
-        System.out.println("------------------------------------------------------");
-        // 배송비 추가
+        System.out.printf("%s %,.0f원%n", OrderPromptStrings.ORDER_AMOUNT_LABEL, totalOrderPrice);
+        System.out.println(OrderPromptStrings.ORDER_HISTORY_DELIMITER);
         if (totalOrderPrice < 50000 && totalOrderPrice > 0) {
             totalOrderPrice += DELIVERY_FEE;
         }
-        System.out.printf("주문 금액: %,.0f원%n", totalOrderPrice);
-        System.out.println("------------------------------------------------------");
+        System.out.printf("%s %,.0f원%n", OrderPromptStrings.PAYMENT_AMOUNT_LABEL, totalOrderPrice);
+        System.out.println(OrderPromptStrings.ORDER_HISTORY_DELIMITER);
     }
 
+    private void printOrderList() {
+        var orders = orderAppService.getH2OrderList();
+        if (orders.isEmpty()) {
+            System.out.println("No orders placed yet.");
+            return;
+        }
 
+        System.out.println("Order List:");
+        for (Order order : orders) {
+            System.out.println("Product ID: " + order.getProduct().getProductId());
+            System.out.println("Quantity: " + order.getQuantity());
+            System.out.println("User ID: " + order.getUserId());
+            System.out.println("-----------------------------");
+        }
+    }
 }

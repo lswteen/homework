@@ -2,6 +2,7 @@ package kr.co._29cm.homework.domain.service;
 
 import kr.co._29cm.homework.domain.entity.ProductEntity;
 import kr.co._29cm.homework.domain.repository.ProductRepository;
+import kr.co_29cm.homework.exception.ProductNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,14 +29,6 @@ public class ProductService {
     @Transactional(readOnly = true)
     public ProductEntity findByProductId(Long productId) {
         return productRepository.findById(productId)
-                .orElseThrow(()-> new IllegalArgumentException("해당 ID상품을 찾을수 없습니다." + productId));
-    }
-
-    @Transactional
-    public void decreaseProductQuantity(Long productId, int quantity) {
-        ProductEntity product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 ID상품을 찾을수 없습니다." + productId));
-
-        product.decreaseQuantity(quantity);
+                .orElseThrow(()-> new ProductNotFoundException(productId));
     }
 }

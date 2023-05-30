@@ -5,10 +5,10 @@ import lombok.*;
 import org.hibernate.annotations.Comment;
 
 @Getter
-@ToString
 @Builder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name="product")
 public class ProductEntity {
     @Id
@@ -24,6 +24,9 @@ public class ProductEntity {
 
     @Column(name="quantity")
     private Integer quantity;
+
+    @Version
+    private int version;
 
     public void decreaseQuantity(Integer quantity) {
         int restQuantity = this.quantity - quantity;
