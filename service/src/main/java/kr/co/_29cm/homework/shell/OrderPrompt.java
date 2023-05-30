@@ -4,6 +4,8 @@ import kr.co._29cm.homework.shell.request.Order;
 import kr.co._29cm.homework.shell.request.Product;
 import kr.co._29cm.homework.shell.service.OrderAppService;
 import kr.co._29cm.homework.shell.service.ProductAppService;
+import kr.co_29cm.homework.exception.ProductNotFoundException;
+import kr.co_29cm.homework.exception.SoldOutException;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -91,24 +93,23 @@ public class OrderPrompt implements CommandLineRunner {
             var quantity = Integer.parseInt(quantityStr);
 
             Product product = null;
-            try{
+            try {
+                // 상품 조회
                 product = productAppService.findByProductId(Long.valueOf(productId));
-            }catch(IllegalArgumentException e){
-                System.out.println("IllegalArgumentException 발생. 요청하신 상품이 없습니다. : "+productId);
+
+                //재고 수량
+                int totalQuantity = quantity + orderAppService.getTotalQuantityForProduct(Long.valueOf(productId));
+                if (product.getStock() < totalQuantity) {
+                    throw new SoldOutException();
+                }
+
+                //주문 추가
+                Order order = new Order(product, quantity);
+                orderAppService.addOrder(order);
+            } catch (ProductNotFoundException | SoldOutException e) {
+                System.out.println(e.getMessage());
                 continue;
             }
-
-            int totalQuantity = (
-                quantity + orderAppService.getTotalQuantityForProduct(Long.valueOf(productId))
-            );
-            if(product.getStock() < totalQuantity) {
-                System.out.println("SoldOutException 발생. 주문한 상품량이 제고량보다 큽니다.");
-                continue;
-            }
-
-            // 주문 추가
-            Order order = new Order(product, quantity);
-            orderAppService.addOrder(order);
         }
     }
 
