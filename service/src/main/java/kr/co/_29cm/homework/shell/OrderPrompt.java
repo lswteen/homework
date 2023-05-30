@@ -70,9 +70,14 @@ public class OrderPrompt implements CommandLineRunner {
         productList.stream().forEach(
             product -> System.out.printf("%-10s %-60s %-12s %-10s%n",
                     product.getProductId(), product.getName(),
-                    product.getPrice(), product.getQuantity()
+                    removeDecimalZero(product.getPrice()), product.getQuantity()
             )
         );
+    }
+
+    private String removeDecimalZero(Double value) {
+        String formattedValue = String.format("%.1f", value);
+        return formattedValue.endsWith(".0") ? formattedValue.replace(".0", "") : formattedValue;
     }
 
     private void handleOrderInput(LineReader lineReader) {
@@ -123,13 +128,13 @@ public class OrderPrompt implements CommandLineRunner {
         var totalOrderPrice = orderAppService.getOrders().stream()
                 .mapToDouble(order -> order.getProduct().getPrice() * order.getQuantity())
                 .sum();
-        System.out.printf("주문 금액: %.2f원%n", totalOrderPrice);
+        System.out.printf("주문 금액: %,.0f원%n", totalOrderPrice);
         System.out.println("------------------------------------------------------");
         // 배송비 추가
         if (totalOrderPrice < 50000 && totalOrderPrice > 0) {
             totalOrderPrice += DELIVERY_FEE;
         }
-        System.out.printf("지불 금액: %.2f원%n", totalOrderPrice);
+        System.out.printf("주문 금액: %,.0f원%n", totalOrderPrice);
         System.out.println("------------------------------------------------------");
     }
 
