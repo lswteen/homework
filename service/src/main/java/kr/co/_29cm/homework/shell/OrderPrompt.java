@@ -82,9 +82,9 @@ public class OrderPrompt implements CommandLineRunner {
             var productId = lineReader.readLine(ORDER_PROMPT).trim();
             var quantityStr = lineReader.readLine(QUANTITY_PROMPT).trim();
 
-            // 공백 입력시 주문 종료
+            // 공백 입력시 주문 완료 결제로 판단
             if (productId.isEmpty() || quantityStr.isEmpty()) {
-                // 이부분에서 재고를 확인할필요가 있음.
+                // 주문에 대한 최종 결제완료 판단으로 재고를 차감시킴.
                 break;
             }
 
@@ -119,7 +119,7 @@ public class OrderPrompt implements CommandLineRunner {
         orderAppService.getOrders().stream()
                 .forEach(order -> System.out.printf("%s - %d개%n", order.getProduct().getName(), order.getQuantity()));
         System.out.println("------------------------------------------------------");
-        // 총 주문 금액 계산
+        //주문 금액 계산
         var totalOrderPrice = orderAppService.getOrders().stream()
                 .mapToDouble(order -> order.getProduct().getPrice() * order.getQuantity())
                 .sum();

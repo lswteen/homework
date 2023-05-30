@@ -1,9 +1,11 @@
 package kr.co._29cm.homework.shell.request;
 
+import lombok.Getter;
 import lombok.ToString;
 
 import java.util.UUID;
 
+@Getter
 @ToString
 public class Order {
     private UUID orderId;
@@ -14,17 +16,6 @@ public class Order {
         this.orderId = UUID.randomUUID();
         this.product = product;
         this.quantity = quantity;
-    }
-
-    public UUID getOrderId() {
-        return orderId;
-    }
-    public Product getProduct() {
-        return product;
-    }
-
-    public int getQuantity() {
-        return quantity;
     }
 
     public void addQuantity(int quantity) {
