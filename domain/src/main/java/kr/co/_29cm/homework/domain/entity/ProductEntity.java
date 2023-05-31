@@ -1,7 +1,9 @@
 package kr.co._29cm.homework.domain.entity;
 
-import jakarta.persistence.*;
-import kr.co_29cm.homework.exception.SoldOutException;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Version;
 import lombok.*;
 import org.hibernate.annotations.Comment;
 
@@ -29,11 +31,7 @@ public class ProductEntity {
     @Version
     private int version;
 
-    public void decreaseQuantity(Integer quantity) {
-        int restQuantity = this.quantity - quantity;
-        if (restQuantity < 0) {
-            throw new SoldOutException();
-        }
-        this.quantity = restQuantity;
+    public void decreaseQuantity(int quantity) {
+        this.quantity -= quantity;
     }
 }

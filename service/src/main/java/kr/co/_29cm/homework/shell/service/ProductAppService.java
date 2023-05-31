@@ -6,6 +6,7 @@ import kr.co._29cm.homework.shell.request.Product;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ProductAppService {
@@ -22,6 +23,10 @@ public class ProductAppService {
 
     public Product findByProductId(Long productId){
         return queryMapper.toProduct(productService.findByProductId(productId));
+    }
+
+    public void decreaseProductQuantity(Map<Long,Integer> productQuantities, String userId){
+        productService.decreaseProductQuantity(productQuantities,userId);
     }
 
 }

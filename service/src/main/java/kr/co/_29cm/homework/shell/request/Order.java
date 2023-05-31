@@ -20,8 +20,8 @@ public class Order {
         this.userId = userId;
     }
 
-    public void addQuantity(int quantity) {
-        this.quantity += quantity;
-    }
+//    public void addQuantity(int quantity) {
+//        this.quantity += quantity;
+//    }
 
 }

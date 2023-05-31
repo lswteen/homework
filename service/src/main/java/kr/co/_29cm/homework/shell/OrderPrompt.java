@@ -56,8 +56,6 @@ public class OrderPrompt implements CommandLineRunner {
             handleOrderInput(lineReader);
             printOrderSummary();
             orderAppService.clearOrders();
-        } else if("m".equalsIgnoreCase(input)){
-            printOrderList();
         } else {
             System.out.printf(OrderPromptStrings.INPUT_ERROR_MESSAGE);
         }
@@ -132,7 +130,7 @@ public class OrderPrompt implements CommandLineRunner {
                             order -> order.getProduct().getProductId(),
                             Order::getQuantity
                     ));
-            orderAppService.createOrdersAndDecreaseProductQuantity(productQuantities, userId);
+            productAppService.decreaseProductQuantity(productQuantities, userId);
             return true;
         }
         return false;
@@ -159,19 +157,4 @@ public class OrderPrompt implements CommandLineRunner {
         System.out.println(OrderPromptStrings.ORDER_HISTORY_DELIMITER);
     }
 
-    private void printOrderList() {
-        var orders = orderAppService.getH2OrderList();
-        if (orders.isEmpty()) {
-            System.out.println("주문 리스트가 없습니다.");
-            return;
-        }
-
-        System.out.println("Order List:");
-        for (Order order : orders) {
-            System.out.println("Product ID: " + order.getProduct().getProductId());
-            System.out.println("Quantity: " + order.getQuantity());
-            System.out.println("User ID: " + order.getUserId());
-            System.out.println("-----------------------------");
-        }
-    }
 }

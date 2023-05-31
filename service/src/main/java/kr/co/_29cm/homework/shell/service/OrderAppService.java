@@ -1,7 +1,5 @@
 package kr.co._29cm.homework.shell.service;
 
-import kr.co._29cm.homework.domain.service.OrderService;
-import kr.co._29cm.homework.shell.mapper.OrderQueryMapper;
 import kr.co._29cm.homework.shell.request.Order;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,12 +12,9 @@ import java.util.Map;
 @Slf4j
 @Service
 public class OrderAppService {
-    private final OrderService orderService;
     private Map<Long, Order> orders;
-    private final OrderQueryMapper queryMapper = OrderQueryMapper.INSTANCE;
 
-    public OrderAppService(OrderService orderService) {
-        this.orderService = orderService;
+    public OrderAppService() {
         this.orders = new HashMap<>();
     }
 
@@ -49,15 +44,5 @@ public class OrderAppService {
 
     public void clearOrders() {
         orders.clear();
-    }
-
-    public List<Order> createOrdersAndDecreaseProductQuantity(Map<Long,Integer> productQuantities, String userId){
-        return queryMapper.toOrders(orderService
-                .createOrdersAndDecreaseProductQuantity(productQuantities,userId));
-    }
-
-    public List<Order> getH2OrderList(){
-        return queryMapper.toOrders(orderService.findByOrders());
-
     }
 }
