@@ -4,7 +4,7 @@ public class OrderPromptStrings {
     public static final String ORDER_PROMPT = "상품번호 : ";
     public static final String QUANTITY_PROMPT = "수량 : ";
     public static final String PROMPT_MESSAGE = "입력(o[order]: 주문, q[quit]: 종료) : ";
-    public static final String EXIT_MESSAGE = "시스템 종료";
+    public static final String EXIT_MESSAGE = "고객님의 주문 감사합니다.";
     public static final String INPUT_ERROR_MESSAGE = "입력값 오류";
     public static final String ORDER_HISTORY_HEADER = "주문 내역:";
     public static final String ORDER_HISTORY_DELIMITER = "------------------------------------------------------";
