@@ -95,17 +95,7 @@ public class OrderPrompt implements CommandLineRunner {
             var quantityStr = lineReader.readLine(OrderPromptStrings.QUANTITY_PROMPT).trim();
             var userId = String.valueOf(Thread.currentThread().getId());
 
-            // 공백 입력시 주문 완료 결제로 판단
-            if (productId.isEmpty() || quantityStr.isEmpty()) {
-                // 재고차감과 주문 테이블 등록을 동시에 한 트랜잭션에서 처리
-                Map<Long, Integer> productQuantities = orderAppService.getOrders().stream()
-                        .collect(Collectors.toMap(
-                                order -> order.getProduct().getProductId(),
-                                Order::getQuantity
-                        ));
-                orderAppService.createOrdersAndDecreaseProductQuantity(productQuantities,userId);
-                break;
-            }
+            if (payment(productId, quantityStr, userId)) break;
 
             try {
                 var quantity = Integer.parseInt(quantityStr); // 수량
@@ -121,6 +111,31 @@ public class OrderPrompt implements CommandLineRunner {
                 continue;
             }
         }
+    }
+
+    /**
+     * 입력값 empty 시 결제
+     * 낙관적 Rock JPA @version 처리
+     *
+     *
+     * @param productId
+     * @param quantityStr
+     * @param userId
+     * @return
+     */
+    private boolean payment(String productId, String quantityStr, String userId) {
+        // 공백 입력시 주문 완료 결제로 판단
+        if (productId.isEmpty() || quantityStr.isEmpty()) {
+            // 재고차감과 주문 테이블 등록을 동시에 한 트랜잭션에서 처리
+            Map<Long, Integer> productQuantities = orderAppService.getOrders().stream()
+                    .collect(Collectors.toMap(
+                            order -> order.getProduct().getProductId(),
+                            Order::getQuantity
+                    ));
+            orderAppService.createOrdersAndDecreaseProductQuantity(productQuantities, userId);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -147,7 +162,7 @@ public class OrderPrompt implements CommandLineRunner {
     private void printOrderList() {
         var orders = orderAppService.getH2OrderList();
         if (orders.isEmpty()) {
-            System.out.println("No orders placed yet.");
+            System.out.println("주문 리스트가 없습니다.");
             return;
         }
 

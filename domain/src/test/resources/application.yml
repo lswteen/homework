@@ -1,0 +1,43 @@
+spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      dialect: org.hibernate.dialect.H2Dialect
+      hibernate:
+        format_sql: true
+        show_sql: false
+    database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+    open-in-view: false
+  data:
+    web:
+      pageable:
+        default-page-size: 10
+        max-page-size: 50
+  datasource:
+#    jdbc-url: jdbc:h2:mem:test-h2-db;MODE=MySQL;
+    jdbc-url: jdbc:h2:~/h2db/homework;AUTO_SERVER=true
+    driver-class-name: org.h2.Driver
+    hikari:
+      maximum-pool-size: 30             # (default : 10)최대 pool size,
+        # "Connection is not available, request timed out after ${connection-timeout}ms" 오류 밸상되면 pool locking(deadlock)상태임,
+        # HikariCP max pool size 공식 => T * (C - 1) + 1,
+        # T = CPU코어 개수(현재 하나의 커넥션에서 처리되는 Thead개수),
+        # C = 하나의 트랜젝션에서 최대 사용될 커넥션 개수
+      # ex> cpu 물리 코어 개수 = 5, 트랜게션당 최대 커넥션수 = 3 ==> 5 * (3 - 1) + 1 = 11
+      connection-timeout: 30000         # (default : 30_000) client가 pool에 connection을 기다리는 최대 시간
+      minimum-idle: 10                  # (default : maximum-pool-size와 동일) pool에 유지할 최소 connection 개수(최적의 응답시간을 위해서는 0으로 설정)
+      idle-timeout: 600000              # (default : 600_000, 최소값 : 10_000ms) pool에서 유휴상태로 유지 될수 있는 최대 시간, (minimum-idle값이 maximum-pool-size보다 작게 설정된 경우에만 작동함)
+      max-lifetime: 1800000             # (default : 1_800_000, 최소값 : 30_000ms) 최대 connection 유지 시간, 이 설정값이 지난 connection은 제거됨
+      # "possibly consider using a shorter maxLifeTime value"오류가 발생되면 이 값을 DB의 대기(MySQL의 경우 wait_timeout(default: 28_800/8h)) 시간보다 2~3초 짧게 잡으면 됨
+  sql:
+    init:
+      data-locations: classpath:sql/data.sql
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  mvc:
+    static-path-pattern: /static/**

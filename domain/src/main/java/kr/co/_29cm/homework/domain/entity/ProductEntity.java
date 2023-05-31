@@ -1,6 +1,7 @@
 package kr.co._29cm.homework.domain.entity;
 
 import jakarta.persistence.*;
+import kr.co_29cm.homework.exception.SoldOutException;
 import lombok.*;
 import org.hibernate.annotations.Comment;
 
@@ -31,7 +32,7 @@ public class ProductEntity {
     public void decreaseQuantity(Integer quantity) {
         int restQuantity = this.quantity - quantity;
         if (restQuantity < 0) {
-            throw new IllegalStateException("재고가 충분하지 않습니다.");
+            throw new SoldOutException();
         }
         this.quantity = restQuantity;
     }
