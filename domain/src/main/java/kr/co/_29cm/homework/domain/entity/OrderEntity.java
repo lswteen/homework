@@ -28,6 +28,5 @@ public class OrderEntity {
         this.product = product;
         this.quantity = quantity;
         this.userId = userId;
-        product.decreaseQuantity(quantity);
    }
 }

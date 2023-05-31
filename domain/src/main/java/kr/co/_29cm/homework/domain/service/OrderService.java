@@ -40,6 +40,10 @@ public class OrderService {
                 throw new SoldOutException();
             }
 
+            // 재고 차감
+            product.decreaseQuantity(quantity);
+
+            // 주문 생성
             OrderEntity order = new OrderEntity(product, quantity, userId);
             orders.add(orderRepository.saveAndFlush(order));
         }

@@ -33,49 +33,49 @@ public class OptimisticLockingTest {
     public void testOptimisticLocking() {
         // 상품 생성
         ProductEntity product = ProductEntity.builder()
-                .productId(1L)
-                .name("상품1")
-                .price(10000.0)
+                .productId(648418L)
+                .name("BS 02-2A DAYPACK 26 (BLACK)")
+                .price(238000D)
                 .quantity(5)
                 .build();
-        productRepository.save(product);
+        productRepository.saveAndFlush(product);
 
         // 동시에 주문 생성 시도
         ExecutorService executorService = Executors.newFixedThreadPool(2);
         CountDownLatch latch = new CountDownLatch(2);
 
-//        Runnable orderCreationTask = () -> {
-//            try {
-//                // 동시에 주문 생성 시도
-//                List<OrderEntity> orders = orderService.createOrdersAndDecreaseProductQuantity(
-//                        Collections.singletonMap(1L, 2), // 상품 ID: 1, 수량: 2
-//                        "user1"
-//                );
-//                System.out.println("주문 생성 결과: " + orders);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            } finally {
-//                latch.countDown();
-//            }
-//        };
-//
-//        // 2개의 스레드로 주문 생성 시도
-//        executorService.submit(orderCreationTask);
-//        executorService.submit(orderCreationTask);
-//
-//        try {
-//            // 주문 생성 작업 완료 대기
-//            latch.await();
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//
-//        // 상품 조회
-//        ProductEntity updatedProduct = productRepository.findById(1L)
-//                .orElseThrow(() -> new NoSuchElementException("Product not found with id: 1"));
-//
-//        // 낙관적 락 테스트
-//        assertEquals(1, updatedProduct.getVersion()); // 버전은 1이어야 함
-//        assertEquals(1, updatedProduct.getQuantity()); // 낙관적 락으로 인해 재고는 1로 차감되어야 함
+        Runnable orderCreationTask = () -> {
+            try {
+                // 동시에 주문 생성 시도
+                List<OrderEntity> orders = orderService.createOrdersAndDecreaseProductQuantity(
+                        Collections.singletonMap(648418L, 2), // 상품 ID: 1, 수량: 2
+                        "user1"
+                );
+                System.out.println("주문 생성 결과: " + orders);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                latch.countDown();
+            }
+        };
+
+        // 2개의 스레드로 주문 생성 시도
+        executorService.submit(orderCreationTask);
+        executorService.submit(orderCreationTask);
+
+        try {
+            // 주문 생성 작업 완료 대기
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // 상품 조회
+        ProductEntity updatedProduct = productRepository.findById(648418L)
+                .orElseThrow(() -> new NoSuchElementException("Product not found with id: 648418L"));
+
+        // 낙관적 락 테스트
+        assertEquals(0, updatedProduct.getVersion());  // 버전은 0이어야 함
+        assertEquals(3, updatedProduct.getQuantity()); // 낙관적 락으로 인해 재고는 2로 차감되어야 함
     }
 }
