@@ -4,6 +4,7 @@ import kr.co._29cm.homework.domain.entity.OrderEntity;
 import kr.co._29cm.homework.domain.repository.OrderRepository;
 import kr.co._29cm.homework.domain.repository.ProductRepository;
 import kr.co_29cm.homework.exception.SoldOutException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,14 +14,11 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 @Service
+@RequiredArgsConstructor
 public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
 
-    public OrderService(OrderRepository orderRepository, ProductRepository productRepository) {
-        this.orderRepository = orderRepository;
-        this.productRepository = productRepository;
-    }
 
     @Transactional(readOnly = true)
     public List<OrderEntity> findByOrders(){
