@@ -43,7 +43,7 @@ public class OrderService {
             }
 
             OrderEntity order = new OrderEntity(product, quantity, userId);
-            orders.add(orderRepository.save(order));
+            orders.add(orderRepository.saveAndFlush(order));
         }
 
         return orders;
