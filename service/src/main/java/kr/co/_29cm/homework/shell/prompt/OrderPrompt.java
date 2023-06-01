@@ -88,16 +88,16 @@ public class OrderPrompt implements CommandLineRunner {
             var quantityStr = lineReader.readLine(OrderPromptStrings.QUANTITY_PROMPT).trim();
             var userId = String.valueOf(Thread.currentThread().getId());
 
-            if (payment(productId, quantityStr, userId)) break;
+            if (payment(productId, quantityStr)) break;
 
             try {
-                var quantity = Integer.parseInt(quantityStr); // 수량
-                var product = productAppService.findByProductId(Long.valueOf(productId)); //상품검색
-                var totalQuantity = quantity + orderAppService.getTotalQuantityForProduct(Long.valueOf(productId)); //총수량 (수량 + 현재 주문수량)
-                if (product.getStock().getQuantity() < totalQuantity) { //상품에 재고수량 < 현재 총수량
+                var quantity = Integer.parseInt(quantityStr);
+                var totalQuantity = quantity + orderAppService.getTotalQuantityForProduct(Long.valueOf(productId));
+                var product = productAppService.findByProductId(Long.valueOf(productId));
+                if (product.getStock().getQuantity() < totalQuantity) { // 상품에 재고수량 < 현재 총수량
                     throw new SoldOutException();
                 }
-                var order = new Order(product, quantity,userId);   //주문
+                var order = new Order(product, quantity, userId);
                 orderAppService.addOrder(order);
             } catch (ProductNotFoundException | SoldOutException e) {
                 System.out.println(e.getMessage());
@@ -107,16 +107,12 @@ public class OrderPrompt implements CommandLineRunner {
     }
 
     /**
-     * 입력값 empty 시 결제
-     * 낙관적 Rock JPA @version 처리
-     *
-     *
+     * 결제시 재고 차감 ROCK LockModeType.PESSIMISTIC_WRITE
      * @param productId
      * @param quantityStr
-     * @param userId
      * @return
      */
-    private boolean payment(String productId, String quantityStr, String userId) {
+    private boolean payment(String productId, String quantityStr) {
         if (productId.isEmpty() || quantityStr.isEmpty()) {
             Map<Long, Integer> productQuantities = orderAppService.getOrders().stream()
                     .collect(Collectors.toMap(
