@@ -2,7 +2,9 @@ package kr.co._29cm.homework;
 
 import kr.co._29cm.homework.domain.entity.ProductEntity;
 import kr.co._29cm.homework.domain.repository.ProductRepository;
+import kr.co._29cm.homework.domain.repository.StockRepository;
 import kr.co._29cm.homework.domain.service.ProductService;
+import kr.co._29cm.homework.domain.service.StockService;
 import kr.co_29cm.homework.exception.SoldOutException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -25,11 +27,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OptimisticLockingTest {
     private final ProductRepository productRepository;
     private final ProductService productService;
+    private final StockService stockService;
+    private final StockRepository stockRepository;
 
     public OptimisticLockingTest(@Autowired ProductRepository productRepository,
-                                 @Autowired ProductService productService) {
+                                 @Autowired ProductService productService,
+                                 @Autowired StockService stockService,
+                                 @Autowired StockRepository stockRepository) {
         this.productRepository = productRepository;
         this.productService = productService;
+        this.stockService = stockService;
+        this.stockRepository = stockRepository;
     }
 
     private static final int INITIAL_QUANTITY = 10;
@@ -53,7 +61,7 @@ public class OptimisticLockingTest {
         for (int i = 0; i < numberOfThreads; i++) {
             Future<?> task = executorService.submit(() -> {
                 try {
-                    productService.decreaseProductQuantity(Collections.singletonMap(productEntity.getProductId(), 3), "user");
+                    stockService.decreaseStock(Collections.singletonMap(productEntity.getProductId(), 3));
                 }catch (SoldOutException e) {
                     soldOutCount.incrementAndGet();
                 }catch (ObjectOptimisticLockingFailureException e) {
