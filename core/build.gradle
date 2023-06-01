@@ -13,7 +13,7 @@ jar {
 
 group 'kr.co._29cm.homework'
 version '0.0.1-SNAPSHOT'
-sourceCompatibility = '11'
+//sourceCompatibility = '11'
 
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'

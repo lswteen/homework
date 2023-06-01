@@ -1,5 +1,8 @@
 package kr.co._29cm.homework.domain.service;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.PersistenceContext;
 import kr.co._29cm.homework.domain.entity.ProductEntity;
 import kr.co._29cm.homework.domain.repository.ProductRepository;
 import kr.co_29cm.homework.exception.ProductNotFoundException;
@@ -9,9 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.PersistenceContext;
+
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ProductService {
     private final ProductRepository productRepository;
+
     @PersistenceContext
     private EntityManager entityManager;
 
