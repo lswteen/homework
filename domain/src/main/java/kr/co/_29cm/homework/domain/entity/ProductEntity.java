@@ -6,7 +6,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.hibernate.annotations.Comment;
 
 
 @Getter
@@ -15,14 +14,15 @@ import org.hibernate.annotations.Comment;
 @Entity(name="product")
 public class ProductEntity {
     @Id
-    @Comment("상품 ID")
     @Column(name="product_id")
     private Long productId;
+
     private String name;
+
     private Double price;
 
-    @OneToOne(mappedBy="product", cascade = CascadeType.ALL)
-    @JoinColumn(name = "stock_id", referencedColumnName = "stockId")
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "product_id", referencedColumnName = "product_id")
     private StockEntity stockEntity;
 
     public ProductEntity(Long productId, String name, Double price, StockEntity stockEntity) {

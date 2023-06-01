@@ -75,7 +75,7 @@ public class OrderPrompt implements CommandLineRunner {
         productList.stream().forEach(
                 product -> System.out.printf("%-10s %-60s %-12s %-10s%n",
                     product.getProductId(), product.getName(),
-                    removeDecimalZero(product.getPrice()), product.getQuantity()
+                    removeDecimalZero(product.getPrice()), product.getStock().getQuantity()
                 )
         );
     }
@@ -96,7 +96,7 @@ public class OrderPrompt implements CommandLineRunner {
                 var quantity = Integer.parseInt(quantityStr); // 수량
                 var product = productAppService.findByProductId(Long.valueOf(productId)); //상품검색
                 var totalQuantity = quantity + orderAppService.getTotalQuantityForProduct(Long.valueOf(productId)); //총수량 (수량 + 현재 주문수량)
-                if (product.getQuantity() < totalQuantity) { //상품에 재고수량 < 현재 총수량
+                if (product.getStock().getQuantity() < totalQuantity) { //상품에 재고수량 < 현재 총수량
                     throw new SoldOutException();
                 }
                 var order = new Order(product, quantity,userId);   //주문
@@ -125,7 +125,7 @@ public class OrderPrompt implements CommandLineRunner {
                             order -> order.getProduct().getProductId(),
                             Order::getQuantity
                     ));
-            productAppService.decreaseProductQuantity(productQuantities, userId);
+            productAppService.decreaseProductQuantity(productQuantities);
             return true;
         }
         return false;

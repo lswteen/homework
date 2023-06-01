@@ -8,9 +8,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = {"productId"})
-public class Product {
+public class Stock {
     private Long productId;
-    private String name;
-    private Double price;
-    private Stock stock;
+    private Integer quantity;
 }

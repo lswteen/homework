@@ -1,9 +1,9 @@
 package kr.co._29cm.homework;
 
 import kr.co._29cm.homework.domain.entity.ProductEntity;
+import kr.co._29cm.homework.domain.entity.StockEntity;
 import kr.co._29cm.homework.domain.repository.ProductRepository;
 import kr.co._29cm.homework.domain.repository.StockRepository;
-import kr.co._29cm.homework.domain.service.ProductService;
 import kr.co._29cm.homework.domain.service.StockService;
 import kr.co_29cm.homework.exception.SoldOutException;
 import lombok.extern.slf4j.Slf4j;
@@ -26,28 +26,41 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 public class OptimisticLockingTest {
     private final ProductRepository productRepository;
-    private final ProductService productService;
-    private final StockService stockService;
     private final StockRepository stockRepository;
+    private final StockService stockService;
 
     public OptimisticLockingTest(@Autowired ProductRepository productRepository,
-                                 @Autowired ProductService productService,
-                                 @Autowired StockService stockService,
-                                 @Autowired StockRepository stockRepository) {
+                                 @Autowired StockRepository stockRepository,
+                                 @Autowired StockService stockService) {
         this.productRepository = productRepository;
-        this.productService = productService;
-        this.stockService = stockService;
         this.stockRepository = stockRepository;
+        this.stockService = stockService;
     }
 
     private static final int INITIAL_QUANTITY = 10;
 
     private ProductEntity createProductEntity() {
-        // 상품 생성
-        ProductEntity productEntity = new ProductEntity(10800L,"BS 02-2A DAYPACK 26 (BLACK)",238000D,INITIAL_QUANTITY);
+        ProductEntity productEntity = new ProductEntity(
+            10800L,
+            "BS 02-2A DAYPACK 26 (BLACK)",
+            238000D,
+            null
+        );
         productRepository.saveAndFlush(productEntity);
+
+        StockEntity stockEntity = new StockEntity(10800L, INITIAL_QUANTITY);
+        stockRepository.saveAndFlush(stockEntity);
+
+        productEntity = new ProductEntity(
+                10800L,
+                "BS 02-2A DAYPACK 26 (BLACK)",
+                238000D,
+                stockEntity
+        );
         return productEntity;
     }
+
+
 
     @Test
     void 멀티스레드_재고_소진() throws ExecutionException, InterruptedException {

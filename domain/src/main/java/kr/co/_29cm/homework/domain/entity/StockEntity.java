@@ -14,17 +14,14 @@ import org.hibernate.annotations.Comment;
 @Entity(name="stock")
 public class StockEntity {
     @Id
-    @Comment("재고 ID")
-    @Column(name="stock_id")
-    private Long stockId;
+    @Column(name = "product_id")
+    private Long productId;
 
-    @Comment("재고 수량")
     private Integer quantity;
 
-    public StockEntity(Long stockId, Integer quantity, ProductEntity product) {
-        this.stockId = stockId;
+    public StockEntity(Long productId, Integer quantity) {
+        this.productId = productId;
         this.quantity = quantity;
-        this.product = product;
     }
 
     public void decreaseQuantity(Integer quantity) {
