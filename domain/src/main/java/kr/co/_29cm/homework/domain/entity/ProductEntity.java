@@ -1,12 +1,10 @@
 package kr.co._29cm.homework.domain.entity;
 
-
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
 
 @Getter
 @ToString

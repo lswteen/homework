@@ -26,9 +26,4 @@ public class ProductService {
         return productRepository.findById(productId)
                 .orElseThrow(()-> new ProductNotFoundException(productId));
     }
-
-    @Transactional
-    public ProductEntity createProductWithStock(ProductEntity productEntity) {
-        return productRepository.save(productEntity);
-    }
 }

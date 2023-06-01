@@ -1,4 +1,4 @@
-package kr.co._29cm.homework.shell;
+package kr.co._29cm.homework.shell.prompt;
 
 public class OrderPromptStrings {
     public static final String ORDER_PROMPT = "상품번호 : ";

@@ -1,4 +1,4 @@
-package kr.co._29cm.homework.shell;
+package kr.co._29cm.homework.shell.prompt;
 
 import kr.co._29cm.homework.shell.request.Order;
 import kr.co._29cm.homework.shell.service.OrderAppService;
@@ -16,6 +16,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static kr.co._29cm.homework.shell.prompt.OrderPromptSupport.exitAction;
+import static kr.co._29cm.homework.shell.prompt.OrderPromptSupport.removeDecimalZero;
 
 @Component
 @RequiredArgsConstructor
@@ -46,8 +49,7 @@ public class OrderPrompt implements CommandLineRunner {
 
     private void manageOrderProcess(String input, LineReader lineReader) {
         if ("q".equalsIgnoreCase(input)) {
-            System.out.printf(OrderPromptStrings.EXIT_MESSAGE);
-            System.exit(0);
+            exitAction();
         } else if ("o".equalsIgnoreCase(input)) {
             printProductInfo();
             handleOrderInput(lineReader);
@@ -58,10 +60,6 @@ public class OrderPrompt implements CommandLineRunner {
         }
     }
 
-    private String removeDecimalZero(Double value) {
-        var formattedValue = String.format("%.1f", value);
-        return formattedValue.endsWith(".0") ? formattedValue.replace(".0", "") : formattedValue;
-    }
 
     /**
      * 상품 정보 조회

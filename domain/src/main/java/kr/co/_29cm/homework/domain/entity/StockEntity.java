@@ -1,12 +1,13 @@
 package kr.co._29cm.homework.domain.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import kr.co_29cm.homework.exception.SoldOutException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.hibernate.annotations.Comment;
 
 @Getter
 @ToString
