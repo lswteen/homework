@@ -23,9 +23,6 @@ public class ProductEntity {
     private Double price;
     private Integer quantity;
 
-//    @Version
-//    private Long version;;
-
     public ProductEntity(Long productId, String name, Double price, Integer quantity) {
         this.productId = productId;
         this.name = name;
