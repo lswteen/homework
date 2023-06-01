@@ -32,12 +32,3 @@ spring:
       idle-timeout: 600000              # (default : 600_000, 최소값 : 10_000ms) pool에서 유휴상태로 유지 될수 있는 최대 시간, (minimum-idle값이 maximum-pool-size보다 작게 설정된 경우에만 작동함)
       max-lifetime: 1800000             # (default : 1_800_000, 최소값 : 30_000ms) 최대 connection 유지 시간, 이 설정값이 지난 connection은 제거됨
       # "possibly consider using a shorter maxLifeTime value"오류가 발생되면 이 값을 DB의 대기(MySQL의 경우 wait_timeout(default: 28_800/8h)) 시간보다 2~3초 짧게 잡으면 됨
-  sql:
-    init:
-      data-locations: classpath:sql/data.sql
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-  mvc:
-    static-path-pattern: /static/**

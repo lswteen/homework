@@ -1,6 +1,6 @@
 buildscript {
 	ext {
-		springBootVersion = '3.1.0'
+		springBootVersion = '2.7.12'
 		springDependencyManagementVersion = '1.1.0'
 	}
 	repositories {
@@ -19,7 +19,7 @@ subprojects {
 
 	group 'kr.co._29cm.homework'
 	version = '0.0.1-SNAPSHOT'
-	sourceCompatibility = '17'
+	sourceCompatibility = '11'
 
 	repositories {
 		mavenCentral()

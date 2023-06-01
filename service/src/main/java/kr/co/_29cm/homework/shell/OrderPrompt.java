@@ -122,9 +122,7 @@ public class OrderPrompt implements CommandLineRunner {
      * @return
      */
     private boolean payment(String productId, String quantityStr, String userId) {
-        // 공백 입력시 주문 완료 결제로 판단
         if (productId.isEmpty() || quantityStr.isEmpty()) {
-            // 재고차감과 주문 테이블 등록을 동시에 한 트랜잭션에서 처리
             Map<Long, Integer> productQuantities = orderAppService.getOrders().stream()
                     .collect(Collectors.toMap(
                             order -> order.getProduct().getProductId(),

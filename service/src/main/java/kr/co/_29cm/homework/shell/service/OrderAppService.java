@@ -25,7 +25,6 @@ public class OrderAppService {
                 .sum();
     }
 
-    //Order객체에 대한 불변성유지를 위해서 수량 변경이 이뤄지면 새로 new로 만들어서 집어넣는다.
     public void addOrder(Order order) {
         var productId = order.getProduct().getProductId();
         if (orders.containsKey(productId)) {
