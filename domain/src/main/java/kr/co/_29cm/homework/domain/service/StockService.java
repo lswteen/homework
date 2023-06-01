@@ -41,15 +41,4 @@ public class StockService {
             stockRepository.save(stockEntity);
         }
     }
-
-    @Transactional(readOnly = true)
-    public StockEntity findByProductId(Long productId) {
-        return stockRepository.findById(productId)
-                .orElseThrow(() -> new StockNotFoundException(productId));
-    }
-
-    @Transactional(readOnly = true)
-    public List<StockEntity> findAll() {
-        return stockRepository.findAll();
-    }
 }

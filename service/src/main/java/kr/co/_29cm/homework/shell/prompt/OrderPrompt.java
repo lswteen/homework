@@ -14,16 +14,13 @@ import org.jline.terminal.TerminalBuilder;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
 import java.util.stream.Collectors;
 
-import static kr.co._29cm.homework.shell.prompt.OrderPromptSupport.exitAction;
-import static kr.co._29cm.homework.shell.prompt.OrderPromptSupport.removeDecimalZero;
+import static kr.co._29cm.homework.shell.prompt.OrderPromptSupport.*;
 
 @Component
 @RequiredArgsConstructor
 public class OrderPrompt implements CommandLineRunner {
-    private static final double DELIVERY_FEE = 2500; // 배송비 설정
 
     private final ProductAppService productAppService;
     private final OrderAppService orderAppService;
@@ -56,10 +53,9 @@ public class OrderPrompt implements CommandLineRunner {
             printOrderSummary();
             orderAppService.clearOrders();
         } else {
-            System.out.printf(OrderPromptStrings.INPUT_ERROR_MESSAGE);
+            errorAction();
         }
     }
-
 
     /**
      * 상품 정보 조회
@@ -114,7 +110,7 @@ public class OrderPrompt implements CommandLineRunner {
      */
     private boolean payment(String productId, String quantityStr) {
         if (productId.isEmpty() || quantityStr.isEmpty()) {
-            Map<Long, Integer> productQuantities = orderAppService.getOrders().stream()
+            var productQuantities = orderAppService.getOrders().stream()
                     .collect(Collectors.toMap(
                             order -> order.getProduct().getProductId(),
                             Order::getQuantity
@@ -139,9 +135,7 @@ public class OrderPrompt implements CommandLineRunner {
                 .sum();
         System.out.printf("%s %,.0f원%n", OrderPromptStrings.ORDER_AMOUNT_LABEL, totalOrderPrice);
         System.out.println(OrderPromptStrings.ORDER_HISTORY_DELIMITER);
-        if (totalOrderPrice < 50000 && totalOrderPrice > 0) {
-            totalOrderPrice += DELIVERY_FEE;
-        }
+        totalOrderPrice = deliveryCharge(totalOrderPrice);
         System.out.printf("%s %,.0f원%n", OrderPromptStrings.PAYMENT_AMOUNT_LABEL, totalOrderPrice);
         System.out.println(OrderPromptStrings.ORDER_HISTORY_DELIMITER);
     }
