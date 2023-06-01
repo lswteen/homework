@@ -1,4 +1,4 @@
-package kr.co._29cm.homework.shell;
+package kr.co._29cm.homework.shell.prompt;
 
 import kr.co._29cm.homework.shell.request.Order;
 import kr.co._29cm.homework.shell.service.OrderAppService;
@@ -16,6 +16,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static kr.co._29cm.homework.shell.prompt.OrderPromptSupport.exitAction;
+import static kr.co._29cm.homework.shell.prompt.OrderPromptSupport.removeDecimalZero;
 
 @Component
 @RequiredArgsConstructor
@@ -46,8 +49,7 @@ public class OrderPrompt implements CommandLineRunner {
 
     private void manageOrderProcess(String input, LineReader lineReader) {
         if ("q".equalsIgnoreCase(input)) {
-            System.out.printf(OrderPromptStrings.EXIT_MESSAGE);
-            System.exit(0);
+            exitAction();
         } else if ("o".equalsIgnoreCase(input)) {
             printProductInfo();
             handleOrderInput(lineReader);
@@ -58,10 +60,6 @@ public class OrderPrompt implements CommandLineRunner {
         }
     }
 
-    private String removeDecimalZero(Double value) {
-        var formattedValue = String.format("%.1f", value);
-        return formattedValue.endsWith(".0") ? formattedValue.replace(".0", "") : formattedValue;
-    }
 
     /**
      * 상품 정보 조회
@@ -75,7 +73,7 @@ public class OrderPrompt implements CommandLineRunner {
         productList.stream().forEach(
                 product -> System.out.printf("%-10s %-60s %-12s %-10s%n",
                     product.getProductId(), product.getName(),
-                    removeDecimalZero(product.getPrice()), product.getQuantity()
+                    removeDecimalZero(product.getPrice()), product.getStock().getQuantity()
                 )
         );
     }
@@ -90,16 +88,16 @@ public class OrderPrompt implements CommandLineRunner {
             var quantityStr = lineReader.readLine(OrderPromptStrings.QUANTITY_PROMPT).trim();
             var userId = String.valueOf(Thread.currentThread().getId());
 
-            if (payment(productId, quantityStr, userId)) break;
+            if (payment(productId, quantityStr)) break;
 
             try {
-                var quantity = Integer.parseInt(quantityStr); // 수량
-                var product = productAppService.findByProductId(Long.valueOf(productId)); //상품검색
-                var totalQuantity = quantity + orderAppService.getTotalQuantityForProduct(Long.valueOf(productId)); //총수량 (수량 + 현재 주문수량)
-                if (product.getQuantity() < totalQuantity) { //상품에 재고수량 < 현재 총수량
+                var quantity = Integer.parseInt(quantityStr);
+                var totalQuantity = quantity + orderAppService.getTotalQuantityForProduct(Long.valueOf(productId));
+                var product = productAppService.findByProductId(Long.valueOf(productId));
+                if (product.getStock().getQuantity() < totalQuantity) { // 상품에 재고수량 < 현재 총수량
                     throw new SoldOutException();
                 }
-                var order = new Order(product, quantity,userId);   //주문
+                var order = new Order(product, quantity, userId);
                 orderAppService.addOrder(order);
             } catch (ProductNotFoundException | SoldOutException e) {
                 System.out.println(e.getMessage());
@@ -109,23 +107,19 @@ public class OrderPrompt implements CommandLineRunner {
     }
 
     /**
-     * 입력값 empty 시 결제
-     * 낙관적 Rock JPA @version 처리
-     *
-     *
+     * 결제시 재고 차감 ROCK LockModeType.PESSIMISTIC_WRITE
      * @param productId
      * @param quantityStr
-     * @param userId
      * @return
      */
-    private boolean payment(String productId, String quantityStr, String userId) {
+    private boolean payment(String productId, String quantityStr) {
         if (productId.isEmpty() || quantityStr.isEmpty()) {
             Map<Long, Integer> productQuantities = orderAppService.getOrders().stream()
                     .collect(Collectors.toMap(
                             order -> order.getProduct().getProductId(),
                             Order::getQuantity
                     ));
-            productAppService.decreaseProductQuantity(productQuantities, userId);
+            productAppService.decreaseProductQuantity(productQuantities);
             return true;
         }
         return false;

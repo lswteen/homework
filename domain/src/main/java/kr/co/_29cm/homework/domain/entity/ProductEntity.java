@@ -1,13 +1,10 @@
 package kr.co._29cm.homework.domain.entity;
 
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import kr.co_29cm.homework.exception.SoldOutException;
-import lombok.*;
-import org.hibernate.annotations.Comment;
-
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Getter
 @ToString
@@ -15,28 +12,21 @@ import org.hibernate.annotations.Comment;
 @Entity(name="product")
 public class ProductEntity {
     @Id
-    @Comment("옵션 ID")
     @Column(name="product_id")
     private Long productId;
-    private String name;
-    private Double price;
-    private Integer quantity;
 
-    public ProductEntity(Long productId, String name, Double price, Integer quantity) {
+    private String name;
+
+    private Double price;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "product_id", referencedColumnName = "product_id")
+    private StockEntity stockEntity;
+
+    public ProductEntity(Long productId, String name, Double price, StockEntity stockEntity) {
         this.productId = productId;
         this.name = name;
         this.price = price;
-        this.quantity = quantity;
-    }
-
-    public void decreaseQuantity(Integer quantity) {
-        validateQuantityCount(quantity);
-        this.quantity -= quantity;
-    }
-
-    private void validateQuantityCount(Integer quantity) {
-        if (quantity > this.getQuantity()) {
-            throw new SoldOutException();
-        }
+        this.stockEntity = stockEntity;
     }
 }

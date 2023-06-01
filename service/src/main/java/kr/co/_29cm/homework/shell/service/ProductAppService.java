@@ -1,6 +1,7 @@
 package kr.co._29cm.homework.shell.service;
 
 import kr.co._29cm.homework.domain.service.ProductService;
+import kr.co._29cm.homework.domain.service.StockService;
 import kr.co._29cm.homework.shell.mapper.ProductQueryMapper;
 import kr.co._29cm.homework.shell.request.Product;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ProductAppService {
     private final ProductService productService;
+    private final StockService stockService;
     private final ProductQueryMapper queryMapper = ProductQueryMapper.INSTANCE;
 
     public List<Product> findByProducts(){
@@ -23,8 +25,8 @@ public class ProductAppService {
         return queryMapper.toProduct(productService.findByProductId(productId));
     }
 
-    public void decreaseProductQuantity(Map<Long,Integer> productQuantities, String userId){
-        productService.decreaseProductQuantity(productQuantities,userId);
+    public void decreaseProductQuantity(Map<Long,Integer> productQuantities){
+        stockService.decreaseStock(productQuantities);
     }
 
 }
