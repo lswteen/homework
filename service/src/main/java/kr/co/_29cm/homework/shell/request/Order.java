@@ -14,14 +14,9 @@ public class Order {
     private String userId;
 
     public Order(Product product, int quantity, String userId) {
-//        this.id = null;  // Initially, the order ID is unknown
         this.product = product;
         this.quantity = quantity;
         this.userId = userId;
     }
-
-//    public void addQuantity(int quantity) {
-//        this.quantity += quantity;
-//    }
 
 }

@@ -5,6 +5,7 @@ import kr.co._29cm.homework.shell.service.OrderAppService;
 import kr.co._29cm.homework.shell.service.ProductAppService;
 import kr.co_29cm.homework.exception.ProductNotFoundException;
 import kr.co_29cm.homework.exception.SoldOutException;
+import lombok.RequiredArgsConstructor;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -17,16 +18,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class OrderPrompt implements CommandLineRunner {
     private static final double DELIVERY_FEE = 2500; // 배송비 설정
 
     private final ProductAppService productAppService;
     private final OrderAppService orderAppService;
-
-    public OrderPrompt(ProductAppService productAppService, OrderAppService orderAppService) {
-        this.productAppService = productAppService;
-        this.orderAppService = orderAppService;
-    }
 
     @Override
     public void run(String... args) throws Exception {
