@@ -396,4 +396,6 @@ public class OptimisticLockingTest {
 상품 10개 재고를 10개의 스레드가 3개씩 동시차감시 3개의 스레드만 성공하고 7개의 스레드는 SoldOutException 처리됩니다.
 오류 카운트7 처리 충돌발생시 ObjectOptimisticLockingFailureException 발생하며 retry를이용해서 재시도로 정상적으로 재고차감후 비관적락과 동일하게 3번의 성공 7번의 실패가 발생합니다.
 
-## 기본기능
+## 프롬프트 기능
+
+## oop, 클린코드 , 구조화, 추상화, 객체 클레스 위임
