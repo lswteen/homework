@@ -69,7 +69,9 @@ public class OptimisticLockingTest {
      * 요구사항에서 멀티스레드 동시 재고차감에서 SoldOutException 이 목적이기에 해당 Rock을
      * LockModeType.PESSIMISTIC_WRITE 으로 변경 하였습니다.
      *
-     * 낙관적으로도도
+     * 낙관적 락으로 처리할수있는 재고도 고민해보고
+     * branch -> feature/object-optmistic-locking
+     * retry, optmistic 이용한 재고차감 기능 및 테스트 코드까지 성공한 케이스 추가 하였습니다.
      *
      * 처음 테이블구조는 product 에 상품번호, 상품명, 가격, 상품재고 같이 있는 구조였지만
      * LockModeType.PESSIMISTIC_WRITE 으로 인하여 상품 테이블 트랜잭션락으로 인하여
