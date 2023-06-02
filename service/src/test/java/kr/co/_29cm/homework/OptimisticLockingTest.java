@@ -87,6 +87,7 @@ public class OptimisticLockingTest {
         }
 
         assertThat(optimisticLockCount.get()).isEqualTo(0);
+        System.out.println("OptimisticLockException count : "+soldOutCount.get());
         assertThat(soldOutCount.get()).isEqualTo(7);
     }
 
