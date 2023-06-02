@@ -24,7 +24,6 @@ public class StockService {
             var productId = entry.getKey();
             var quantity = entry.getValue();
 
-            // Pessimistic lock을 사용하여 동시성 문제를 방지합니다.
             var stockEntity = entityManager
                     .find(StockEntity.class, productId, LockModeType.PESSIMISTIC_WRITE);
 

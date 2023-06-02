@@ -10,8 +10,8 @@ import org.jline.terminal.TerminalBuilder;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 @Component
@@ -19,47 +19,20 @@ public class OrderPrompt implements CommandLineRunner {
 
     private final ProductAppService productAppService;
     private final OrderAppService orderAppService;
-    private final Map<String, Consumer<LineReader>> actions;
+    private final Map<String, OrderAction> actionMap;
 
     public OrderPrompt(ProductAppService productAppService, OrderAppService orderAppService) {
         this.productAppService = productAppService;
         this.orderAppService = orderAppService;
-        this.actions = new HashMap<>();
-        initActions();
+        this.actionMap = Map.of(
+                "q", this::exitAction,
+                "o", this::orderAction,
+                "default", this::errorAction
+        );
     }
-
-    @Override
-    public void run(String... args) throws Exception {
-        var terminal = TerminalBuilder.terminal();
-        var lineReader = LineReaderBuilder
-                .builder()
-                .terminal(terminal)
-                .build();
-
-        while (true) {
-            String line = null;
-            try {
-                line = lineReader.readLine(OrderPromptStrings.PROMPT_MESSAGE);
-                manageOrderProcess(line, lineReader);
-            } catch (UserInterruptException | EndOfFileException e) {
-                return;
-            }
-        }
-    }
-
-    private void initActions() {
-        actions.put("q", this::exitAction);
-        actions.put("o", this::orderAction);
-        actions.put("default", this::errorAction);
-    }
-
     private void exitAction(LineReader lineReader) {
         System.out.printf(OrderPromptStrings.EXIT_MESSAGE);
         System.exit(0);
-    }
-
-    private void errorAction(LineReader lineReader) {
-        System.out.printf(OrderPromptStrings.INPUT_ERROR_MESSAGE);
     }
 
     private void orderAction(LineReader lineReader) {
@@ -69,8 +42,35 @@ public class OrderPrompt implements CommandLineRunner {
         orderAppService.clearOrders();
     }
 
-    private void manageOrderProcess(String input, LineReader lineReader) {
-        Consumer<LineReader> action = actions.getOrDefault(input, actions.get("default"));
-        action.accept(lineReader);
+    private void errorAction(LineReader lineReader) {
+        System.out.printf(OrderPromptStrings.INPUT_ERROR_MESSAGE);
     }
+
+    @Override
+    public void run(String... args) throws Exception {
+        final var lineReader = LineReaderBuilder
+                .builder()
+                .terminal(TerminalBuilder.terminal())
+                .build();
+
+        while (true) {
+            try {
+                Optional.ofNullable(lineReader.readLine(OrderPromptStrings.PROMPT_MESSAGE))
+                        .map(String::toLowerCase)
+                        .map(this::lineToAction)
+                        .ifPresent(goToOrderAction(lineReader));
+            } catch (UserInterruptException | EndOfFileException e) {
+                return;
+            }
+        }
+    }
+
+    private Consumer<OrderAction> goToOrderAction(LineReader lineReader) {
+        return action -> action.execute(lineReader);
+    }
+
+    private OrderAction lineToAction(String line) {
+        return actionMap.getOrDefault(line, actionMap.get("default"));
+    }
+
 }

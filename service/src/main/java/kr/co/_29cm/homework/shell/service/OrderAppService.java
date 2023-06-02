@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 public class OrderAppService {
     private static final double DELIVERY_FEE = 2500; // 배송비 설정
 
-    private Map<Long, Order> orders;
+    private final Map<Long, Order> orders;
     private final ProductAppService productAppService;
 
     public OrderAppService(ProductAppService productAppService) {
