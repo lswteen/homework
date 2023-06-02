@@ -72,7 +72,7 @@ public class OptimisticLockingTest {
         for (int i = 0; i < numberOfThreads; i++) {
             Future<?> task = executorService.submit(() -> {
                 try {
-                    stockService.objectOptimisticLockingdecreaseStock(Collections.singletonMap(productEntity.getProductId(), 3));
+                    stockService.objectOptimisticLockingDecreaseStock(Collections.singletonMap(productEntity.getProductId(), 3));
                 } catch (ObjectOptimisticLockingFailureException e) {
                     optimisticLockCount.incrementAndGet();
                 } catch(SoldOutException e){
@@ -86,10 +86,8 @@ public class OptimisticLockingTest {
             task.get();
         }
 
-        System.out.println("OptimisticLockException count: " + optimisticLockCount.get());
-        System.out.println("SoldOutException : "+soldOutCount.get());
-        // Assuming there are only 5 stock to start with.
-        //assertThat(optimisticLockCount.get()).isEqualTo(5);
+        assertThat(optimisticLockCount.get()).isEqualTo(0);
+        assertThat(soldOutCount.get()).isEqualTo(7);
     }
 
 

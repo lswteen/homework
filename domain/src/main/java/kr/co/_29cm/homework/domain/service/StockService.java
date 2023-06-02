@@ -18,7 +18,7 @@ public class StockService {
 
     @Transactional
     @Retryable(value = ObjectOptimisticLockingFailureException.class, maxAttempts = 5)
-    public void objectOptimisticLockingdecreaseStock(Map<Long, Integer> productQuantities) {
+    public void objectOptimisticLockingDecreaseStock(Map<Long, Integer> productQuantities) {
         for (Map.Entry<Long, Integer> entry : productQuantities.entrySet()) {
             var productId = entry.getKey();
             var quantity = entry.getValue();
