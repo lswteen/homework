@@ -23,14 +23,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @SpringBootTest
-public class OptimisticLockingTest {
+public class PessimisticLockingTest {
     private final ProductRepository productRepository;
     private final StockRepository stockRepository;
     private final StockService stockService;
 
-    public OptimisticLockingTest(@Autowired ProductRepository productRepository,
-                                 @Autowired StockRepository stockRepository,
-                                 @Autowired StockService stockService) {
+    public PessimisticLockingTest(@Autowired ProductRepository productRepository,
+                                  @Autowired StockRepository stockRepository,
+                                  @Autowired StockService stockService) {
         this.productRepository = productRepository;
         this.stockRepository = stockRepository;
         this.stockService = stockService;
