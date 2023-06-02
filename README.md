@@ -249,6 +249,9 @@ private static final int INITIAL_QUANTITY = 10;
 
     }
 ```
+<img width="2074" alt="스크린샷 2023-06-02 오후 11 31 58" src="https://github.com/lswteen/homework/assets/3292892/e7fdea55-edb0-450a-b001-42ade51ac4d3">
+상품 10개 재고를 10개의 스레드가 3개씩 동시차감시 3개의 스레드만 성공하고 7개의 스레드는 SoldOutException 처리됩니다.
+오류 카운트7 처리
 
 
 ## git object-optmistic-locking : 낙관적락 (Optimistic)
@@ -389,5 +392,8 @@ public class OptimisticLockingTest {
 
 }
 ```
+<img width="2009" alt="스크린샷 2023-06-02 오후 11 41 12" src="https://github.com/lswteen/homework/assets/3292892/28636ba6-3061-4623-a749-86b2cb3a1feb">
+상품 10개 재고를 10개의 스레드가 3개씩 동시차감시 3개의 스레드만 성공하고 7개의 스레드는 SoldOutException 처리됩니다.
+오류 카운트7 처리 충돌발생시 ObjectOptimisticLockingFailureException 발생하며 retry를이용해서 재시도로 정상적으로 재고차감후 비관적락과 동일하게 3번의 성공 7번의 실패가 발생합니다.
 
-<img width="2074" alt="스크린샷 2023-06-02 오후 11 31 58" src="https://github.com/lswteen/homework/assets/3292892/e7fdea55-edb0-450a-b001-42ade51ac4d3">
+## 기본기능
