@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS `product` CASCADE;
 DROP TABLE IF EXISTS `stock` CASCADE;
-DROP TABLE IF EXISTS `orders` CASCADE;
+-- DROP TABLE IF EXISTS `orders` CASCADE;
 
 CREATE TABLE product (
      product_id BIGINT NOT NULL,
@@ -16,11 +16,11 @@ CREATE TABLE stock (
    FOREIGN KEY (product_id) REFERENCES product (product_id)
 );
 
-CREATE TABLE orders (
-    id BIGINT AUTO_INCREMENT,
-    product_id BIGINT,
-    quantity INT,
-    user_id VARCHAR(255),
-    PRIMARY KEY (id),
-    FOREIGN KEY (product_id) REFERENCES product(product_id) ON DELETE CASCADE
-);
+-- CREATE TABLE orders (
+--     id BIGINT AUTO_INCREMENT,
+--     product_id BIGINT,
+--     quantity INT,
+--     user_id VARCHAR(255),
+--     PRIMARY KEY (id),
+--     FOREIGN KEY (product_id) REFERENCES product(product_id) ON DELETE CASCADE
+-- );
