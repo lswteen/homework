@@ -144,7 +144,7 @@ Locking 선택은 프로젝트 요구사항, EndUser MAU, 트래픽, 가용자�
 
 과제 진행중 60-70프로정도를 멀티스레드 동시성 재고수량 처리에 사용한것 같습니다.
 
-git main branch : 비관적락 (Pessimisitc)
+## git main branch : 비관적락 (Pessimisitc)
 ```java
 @Service
 @RequiredArgsConstructor
@@ -175,6 +175,219 @@ public class StockService {
     }
 }
 ```
+```java
+private static final int INITIAL_QUANTITY = 10;
+
+    private ProductEntity createProductEntity() {
+        ProductEntity productEntity = new ProductEntity(
+            10800L,
+            "BS 02-2A DAYPACK 26 (BLACK)",
+            238000D,
+            null
+        );
+        productRepository.save(productEntity);
+
+        StockEntity stockEntity = new StockEntity(10800L, INITIAL_QUANTITY);
+        stockRepository.save(stockEntity);
+
+        productEntity = new ProductEntity(
+                10800L,
+                "BS 02-2A DAYPACK 26 (BLACK)",
+                238000D,
+                stockEntity
+        );
+        return productEntity;
+    }
+
+    /**
+     * 10 개의 스레드를 생성하고
+     * 미리 Mock으로 등록된 상품의 재고 10개를 차감하는 로직입니다.
+     *
+     * 한번에 3개의 상품재고를 소진하기때문에 동시에 10개를 진행하면 3개만성공하고
+     * 7번의 SoldOutException 이 발생하고 filedCount 를 증가 시키게 됩니다.
+     *
+     * 요구사항에서 멀티스레드 동시 재고차감에서 SoldOutException 이 목적이기에 해당 Rock을
+     * LockModeType.PESSIMISTIC_WRITE 으로 변경 하였습니다.
+     *
+     * 낙관적 락으로 처리할수있는 재고도 고민해보고
+     * branch -> feature/object-optmistic-locking
+     * retry, optmistic 이용한 재고차감 기능 및 테스트 코드까지 성공한 케이스 추가 하였습니다.
+     *
+     * 처음 테이블구조는 product 에 상품번호, 상품명, 가격, 상품재고 같이 있는 구조였지만
+     * LockModeType.PESSIMISTIC_WRITE 으로 인하여 상품 테이블 트랜잭션락으로 인하여
+     *
+     * 추후 데이터가 증가하게되면 상품조회 와 재고 변경 이라는 Read/Write
+     * 사용빈도가 다른 2개의 테이블을 용도에 맞게 분리 하였습니다.
+     *
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
+    @Test
+    void multithread_throws_SoldOutException_when_productinventory_exhaustion() throws ExecutionException, InterruptedException {
+        ProductEntity productEntity = createProductEntity();
+
+        var numberOfThreads = 10;
+        var executorService = Executors.newFixedThreadPool(numberOfThreads);
+        var soldOutCount = new AtomicInteger(0);
+
+        List<Future<?>> tasks = new ArrayList<>();
+        for (int i = 0; i < numberOfThreads; i++) {
+            Future<?> task = executorService.submit(() -> {
+                try {
+                    stockService.decreaseStock(Collections.singletonMap(productEntity.getProductId(), 3));
+                }catch (SoldOutException e) {
+                    soldOutCount.incrementAndGet();
+                }
+            });
+            tasks.add(task);
+        }
+        for (Future<?> task : tasks) {
+            task.get();
+        }
+        System.out.println("SoldOutException count: " + soldOutCount.get());
+        assertThat(soldOutCount.get()).isEqualTo(7);
+
+    }
+```
 
 
-git object-optmistic-locking : 낙관적락 (Optimistic)
+## git object-optmistic-locking : 낙관적락 (Optimistic)
+```java
+
+@Configuration
+@EnableRetry
+public class RetryConfig {
+}
+
+@Service
+@RequiredArgsConstructor
+public class StockService {
+    private final StockRepository stockRepository;
+
+    @Transactional
+    @Retryable(value = ObjectOptimisticLockingFailureException.class, maxAttempts = 5)
+    public void objectOptimisticLockingDecreaseStock(Map<Long, Integer> productQuantities) {
+        for (Map.Entry<Long, Integer> entry : productQuantities.entrySet()) {
+            var productId = entry.getKey();
+            var quantity = entry.getValue();
+
+            // 낙관적 락을 사용합니다.
+            var stockEntity = stockRepository.findById(productId)
+                    .orElseThrow(() -> new StockNotFoundException(productId));
+
+            if (stockEntity == null) {
+                throw new StockNotFoundException(productId);
+            }
+
+            if (stockEntity.getQuantity() < quantity) {
+                throw new SoldOutException();
+            }
+
+            stockEntity.decreaseQuantity(quantity);
+            //stockRepository.save(stockEntity);
+        }
+    }
+
+    @Getter
+    @ToString
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @Entity(name="stock")
+    public class StockEntity {
+        @Id
+        @Column(name = "product_id")
+        private Long productId;
+
+        private Integer quantity;
+
+        @Version
+        private Long version;
+        
+        (생략)..
+}
+```
+
+```sql
+CREATE TABLE stock (
+   product_id BIGINT NOT NULL,
+   quantity INT,
+   version BIGINT DEFAULT 0,
+   PRIMARY KEY (product_id),
+   FOREIGN KEY (product_id) REFERENCES product (product_id)
+);
+```
+
+```java
+
+@Slf4j
+@SpringBootTest
+public class OptimisticLockingTest {
+    private final ProductRepository productRepository;
+    private final StockRepository stockRepository;
+    private final StockService stockService;
+
+    public OptimisticLockingTest(@Autowired ProductRepository productRepository,
+                                 @Autowired StockRepository stockRepository,
+                                 @Autowired StockService stockService) {
+        this.productRepository = productRepository;
+        this.stockRepository = stockRepository;
+        this.stockService = stockService;
+    }
+
+    private static final int INITIAL_QUANTITY = 10;
+
+    private ProductEntity createProductEntity() {
+        ProductEntity productEntity = new ProductEntity(
+            10800L,
+            "BS 02-2A DAYPACK 26 (BLACK)",
+            238000D,
+            null
+        );
+        productRepository.save(productEntity);
+
+        StockEntity stockEntity = new StockEntity(10800L, INITIAL_QUANTITY);
+        stockRepository.save(stockEntity);
+
+        productEntity = new ProductEntity(
+                10800L,
+                "BS 02-2A DAYPACK 26 (BLACK)",
+                238000D,
+                stockEntity
+        );
+        return productEntity;
+    }
+
+    @Test
+    void multithread_throws_OptimisticLockException_when_productinventory_exhaustion() throws ExecutionException, InterruptedException {
+        ProductEntity productEntity = createProductEntity();
+
+        var numberOfThreads = 10;
+        var executorService = Executors.newFixedThreadPool(numberOfThreads);
+        var optimisticLockCount = new AtomicInteger(0);
+        var soldOutCount = new AtomicInteger(0);
+        List<Future<?>> tasks = new ArrayList<>();
+        for (int i = 0; i < numberOfThreads; i++) {
+            Future<?> task = executorService.submit(() -> {
+                try {
+                    stockService.objectOptimisticLockingDecreaseStock(Collections.singletonMap(productEntity.getProductId(), 3));
+                } catch (ObjectOptimisticLockingFailureException e) {
+                    optimisticLockCount.incrementAndGet();
+                } catch(SoldOutException e){
+                    soldOutCount.incrementAndGet();
+                }
+
+            });
+            tasks.add(task);
+        }
+        for (Future<?> task : tasks) {
+            task.get();
+        }
+
+        assertThat(optimisticLockCount.get()).isEqualTo(0);
+        assertThat(soldOutCount.get()).isEqualTo(7);
+    }
+
+
+}
+```
+
+<img width="2074" alt="스크린샷 2023-06-02 오후 11 31 58" src="https://github.com/lswteen/homework/assets/3292892/e7fdea55-edb0-450a-b001-42ade51ac4d3">
