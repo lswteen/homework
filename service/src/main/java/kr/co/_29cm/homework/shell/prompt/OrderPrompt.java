@@ -12,17 +12,19 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 @Component
 public class OrderPrompt implements CommandLineRunner {
 
     private final ProductAppService productAppService;
     private final OrderAppService orderAppService;
-    private final Map<String, OrderAction> actionMap = new HashMap<>();
+    private final Map<String, Consumer<LineReader>> actions;
 
     public OrderPrompt(ProductAppService productAppService, OrderAppService orderAppService) {
         this.productAppService = productAppService;
         this.orderAppService = orderAppService;
+        this.actions = new HashMap<>();
         initActions();
     }
 
@@ -46,9 +48,9 @@ public class OrderPrompt implements CommandLineRunner {
     }
 
     private void initActions() {
-        actionMap.put("q", this::exitAction);
-        actionMap.put("o", this::orderAction);
-        actionMap.put("default", this::errorAction);
+        actions.put("q", this::exitAction);
+        actions.put("o", this::orderAction);
+        actions.put("default", this::errorAction);
     }
 
     private void exitAction(LineReader lineReader) {
@@ -68,11 +70,7 @@ public class OrderPrompt implements CommandLineRunner {
     }
 
     private void manageOrderProcess(String input, LineReader lineReader) {
-        OrderAction action = actionMap
-                .getOrDefault(input.toLowerCase(), actionMap.get("default"));
-        action.execute(lineReader);
+        Consumer<LineReader> action = actions.getOrDefault(input, actions.get("default"));
+        action.accept(lineReader);
     }
-
-
-
 }
