@@ -26,7 +26,7 @@ public class ProductAppService {
     }
 
     public void decreaseProductQuantity(Map<Long,Integer> productQuantities){
-        stockService.decreaseStock(productQuantities);
+        stockService.objectOptimisticLockingdecreaseStock(productQuantities);
     }
 
 }

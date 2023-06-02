@@ -3,6 +3,7 @@ package kr.co._29cm.homework.domain.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Version;
 import kr.co_29cm.homework.exception.SoldOutException;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,6 +20,9 @@ public class StockEntity {
     private Long productId;
 
     private Integer quantity;
+
+    @Version
+    private Long version;
 
     public StockEntity(Long productId, Integer quantity) {
         this.productId = productId;

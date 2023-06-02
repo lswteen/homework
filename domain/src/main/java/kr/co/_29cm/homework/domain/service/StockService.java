@@ -1,12 +1,11 @@
 package kr.co._29cm.homework.domain.service;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.LockModeType;
-import kr.co._29cm.homework.domain.entity.StockEntity;
 import kr.co._29cm.homework.domain.repository.StockRepository;
 import kr.co_29cm.homework.exception.SoldOutException;
 import kr.co_29cm.homework.exception.StockNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,17 +15,17 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class StockService {
     private final StockRepository stockRepository;
-    private final EntityManager entityManager;
 
     @Transactional
-    public void decreaseStock(Map<Long, Integer> productQuantities) {
+    @Retryable(value = ObjectOptimisticLockingFailureException.class, maxAttempts = 5)
+    public void objectOptimisticLockingdecreaseStock(Map<Long, Integer> productQuantities) {
         for (Map.Entry<Long, Integer> entry : productQuantities.entrySet()) {
             var productId = entry.getKey();
             var quantity = entry.getValue();
 
-            // Pessimistic lock을 사용하여 동시성 문제를 방지합니다.
-            var stockEntity = entityManager
-                    .find(StockEntity.class, productId, LockModeType.PESSIMISTIC_WRITE);
+            // 낙관적 락을 사용합니다.
+            var stockEntity = stockRepository.findById(productId)
+                    .orElseThrow(() -> new StockNotFoundException(productId));
 
             if (stockEntity == null) {
                 throw new StockNotFoundException(productId);
@@ -37,7 +36,11 @@ public class StockService {
             }
 
             stockEntity.decreaseQuantity(quantity);
-            stockRepository.save(stockEntity);
+            //stockRepository.save(stockEntity);
         }
     }
+
+
+
+
 }

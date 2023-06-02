@@ -12,6 +12,7 @@ CREATE TABLE product (
 CREATE TABLE stock (
    product_id BIGINT NOT NULL,
    quantity INT,
+   version BIGINT DEFAULT 0,
    PRIMARY KEY (product_id),
    FOREIGN KEY (product_id) REFERENCES product (product_id)
 );
