@@ -1,5 +1,5 @@
-# With Springboot framework For Order prompt
-스프링 프레임워크 3.1.0 최신버전으로 작업된 멀티모듈 레이어드 아키텍처 구조 입니다.
+# With Springboot Framework For Order prompt
+스프링 프레임워크 3.1.0 최신버전으로 작업된 멀티모듈 레이어드 아키텍처 구조 입니다.  
 DDD(Domain Driven Design) OOP Solid 를 기반으로 구성된 스켈레톤 입니다.
 
 https://start.spring.io/
@@ -7,6 +7,24 @@ https://start.spring.io/
 
 프로젝트 생성은 아래 블로그에 정리하였습니다.  
 https://angryfullstack.tistory.com/95
+
+## 레이어드 멀티모듈
+자세한 설명은 아래 링크를 참조해주세요  
+https://angryfullstack.tistory.com/53  
+마이크로 서비스 레이어드 아키텍처 링크 공유
+
+### core
+공통 유틸 또는 예외처리 Exception
+core 모듈은 각 서비스 사용용도에 맞게 확장성 있는 구성이 가능합니다.
+### domain
+주문(Product), 재고(Stock)
+JPA 설정, Entity, Repository, Service 등
+인프라스트럭처 config 등을 담고 있고 서비스 도메인은 H2 JPA 관계형 RDBMS 비지니스 로직이 구현되어있고
+용도에 맞게  domain으로 확장성있게 구성할 수 있습니다
+### service
+어플리케이션 영역 실행가능한 JAR 모듈이며 
+RestAPi, Prompt 등 프리젠테이션 영역에 필요한 비지니스로직과 
+미들맨 이라는 DDD Aggregate 역활에 어플리케이션 서비스를 구성합니다.
 
 ## 기술스택
 ```java
@@ -31,6 +49,53 @@ File > Project Structure > Project
 File > Project Structure > SDKs
 <img width="1279" alt="스크린샷 2023-06-02 오후 10 58 59" src="https://github.com/lswteen/homework/assets/3292892/1c626e84-88fb-49f8-9fa7-61ef84dfd18e">
 
+## application.yml
+H2 DB 설정 참고하세요
+```yaml
+spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      dialect: org.hibernate.dialect.H2Dialect
+      hibernate:
+        format_sql: true
+        show_sql: false
+    database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+    open-in-view: false
+  data:
+    web:
+      pageable:
+        default-page-size: 10
+        max-page-size: 50
+  datasource:
+    #    jdbc-url: jdbc:h2:mem:test-h2-db;MODE=MySQL;
+    jdbc-url: jdbc:h2:~/h2db/homework;AUTO_SERVER=true
+    driver-class-name: org.h2.Driver
+    hikari:
+      maximum-pool-size: 30             # (default : 10)최대 pool size,
+        # "Connection is not available, request timed out after ${connection-timeout}ms" 오류 밸상되면 pool locking(deadlock)상태임,
+        # HikariCP max pool size 공식 => T * (C - 1) + 1,
+        # T = CPU코어 개수(현재 하나의 커넥션에서 처리되는 Thead개수),
+      # C = 하나의 트랜젝션에서 최대 사용될 커넥션 개수
+      # ex> cpu 물리 코어 개수 = 5, 트랜게션당 최대 커넥션수 = 3 ==> 5 * (3 - 1) + 1 = 11
+      connection-timeout: 30000         # (default : 30_000) client가 pool에 connection을 기다리는 최대 시간
+      minimum-idle: 10                  # (default : maximum-pool-size와 동일) pool에 유지할 최소 connection 개수(최적의 응답시간을 위해서는 0으로 설정)
+      idle-timeout: 600000              # (default : 600_000, 최소값 : 10_000ms) pool에서 유휴상태로 유지 될수 있는 최대 시간, (minimum-idle값이 maximum-pool-size보다 작게 설정된 경우에만 작동함)
+      max-lifetime: 1800000             # (default : 1_800_000, 최소값 : 30_000ms) 최대 connection 유지 시간, 이 설정값이 지난 connection은 제거됨
+      # "possibly consider using a shorter maxLifeTime value"오류가 발생되면 이 값을 DB의 대기(MySQL의 경우 wait_timeout(default: 28_800/8h)) 시간보다 2~3초 짧게 잡으면 됨
+  sql:
+    init:
+      data-locations: classpath:sql/data.sql
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  mvc:
+    static-path-pattern: /static/**
+```
 
 자바 버전에 다양한 업데이트가 있었지만 17로 사용한 이유는 스프링 최신버전을 사용 GC 성능 개선된 부분을 최대한 활용할수 있다는 장점 Stop-the-world 상황을 최적화 목적을 두었습니다.  
 과제 특성상 기술부채 최소화에 목적을 두고 업데이트버전 사용시 삭제된 내부 클레스, Syntax변경, Entity import변경, 낙관적락 Exception 변경 등 
@@ -389,13 +454,37 @@ public class OptimisticLockingTest {
         assertThat(soldOutCount.get()).isEqualTo(7);
     }
 
-
 }
 ```
 <img width="2009" alt="스크린샷 2023-06-02 오후 11 41 12" src="https://github.com/lswteen/homework/assets/3292892/28636ba6-3061-4623-a749-86b2cb3a1feb">
 상품 10개 재고를 10개의 스레드가 3개씩 동시차감시 3개의 스레드만 성공하고 7개의 스레드는 SoldOutException 처리됩니다.
 오류 카운트7 처리 충돌발생시 ObjectOptimisticLockingFailureException 발생하며 retry를이용해서 재시도로 정상적으로 재고차감후 비관적락과 동일하게 3번의 성공 7번의 실패가 발생합니다.
 
-## 프롬프트 기능
+## 프롬프트 기능 확인
+Intellij 오른쪽 메뉴 > Gradle > homework > build > clean & build
+Service 모듈 에 HomeworkApplication 실헹
 
-## oop, 클린코드 , 구조화, 추상화, 객체 클레스 위임
+<img width="648" alt="스크린샷 2023-06-03 오후 1 59 25" src="https://github.com/lswteen/homework/assets/3292892/8d363b54-4129-4ae8-a1d8-6ef1c1de7662">
+
+### 1) 실행 default prompt 노출
+<img width="1748" alt="스크린샷 2023-06-03 오후 2 01 23" src="https://github.com/lswteen/homework/assets/3292892/5d052d26-d6f6-408e-99d6-98b084caaf34">
+
+### 2) 상품 목록 노출
+<img width="1465" alt="스크린샷 2023-06-03 오후 2 01 37" src="https://github.com/lswteen/homework/assets/3292892/ad1e254c-41ee-4ecd-a6b3-b0180df4311f">
+
+### 3) 상품번호, 수량 등록
+<img width="766" alt="스크린샷 2023-06-03 오후 2 02 10" src="https://github.com/lswteen/homework/assets/3292892/b248c123-6b7b-4ea0-b0e9-c446460f7e34">
+
+### 4) 공백 empty 입력시 결제 완료 재고차감 주문금액, 지불금액 노출
+<img width="766" alt="스크린샷 2023-06-03 오후 2 02 10" src="https://github.com/lswteen/homework/assets/3292892/6cb42e54-ffc5-4bca-a47b-88ed8e1ed98d">
+
+### 5) 재고 차감 확인
+<img width="791" alt="스크린샷 2023-06-03 오후 2 02 19" src="https://github.com/lswteen/homework/assets/3292892/8814b8dc-98d8-4e45-9716-1e2d1a4d1c57">
+
+### 6) 재고보다 많은 요청시 SoldOutException 발생.
+<img width="764" alt="스크린샷 2023-06-03 오후 2 06 03" src="https://github.com/lswteen/homework/assets/3292892/b5264778-46c2-4849-a14c-b4b72f6cfe4f">
+
+## 리펙토링
+메소드 -> 여러개의 메소드 -> 의미있는 용도의 클레스 위임 -> 용도에 맞는 여러 클레스 구성
+
+긴글 읽어주셔서 감사합니다.
